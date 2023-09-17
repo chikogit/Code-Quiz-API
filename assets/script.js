@@ -69,3 +69,129 @@ const questions = [
     },
 
 ]
+//timer is housed in with start quiz function to initiate timer with the questions appearing, therefore starting the quiz officially 
+function startQuiz() {
+
+    timeLeft = 100;
+    document.getElementById("timeLeft").innerHTML=timeLeft + " seconds";
+
+    quizTimer = setInterval(function() {
+        timeLeft--;
+        document.getElementById("timeLeft").innerHTML=timeLeft + " seconds";
+        if (timeLeft <= 0) {
+            clearInterval(quizTimer);
+            window.alert("TIME IS UP! THE QUIZ IS OVER!");
+            quizOver(); 
+        }
+        }, 1000); //1000 milliseconds allow for timeLeft to run its respective 100 seconds
+
+        nextNewQuestion();
+    }
+
+//last page - users three initals is saved on local storage as MVP and their score as highscore respectively
+function quizOver() {
+    clearInterval(quizTimer);
+//var finalquizdetails invokes the html page and hidden details including the final score details here, the questions and answer choices, and the restart page of the original start page
+    var finalQuizDetails = `
+    <h2>Great job!</h2>
+    <p>Your final score is ` + totalScore + `!</p>
+    <p>Please enter your initials to submit your score in the highscore chart.</p>
+    <input type="text" id="MVP" class="initials" maxlength="3" required>
+    <button onclick="saveHighscore()" class="highscore-btn" title="Submit Highscore">Submit</button>`;
+
+    document.getElementById("startpage").innerHTML = finalQuizDetails;
+}
+
+//demonstrates player highscore saved in their own localstorage
+function saveHighscore() {
+    localStorage.setItem("Highscore", totalScore);
+    localStorage.setItem("MVP", document.getElementById('MVP').value);
+
+    getHighscore();
+}
+
+//after player saves highscore, turns into special page that allows user to either clear score and play again or simply play again without affecting their score on localstorage
+function getHighscore() {
+    var finalQuizDetails = `
+    <h2>` + localStorage.getItem("MVP") + `'s highscore is:</h2>
+    <h1>` + localStorage.getItem("Highscore") + `</h1><br >
+
+    <button onclick="clearHighscore()" class="clear-btn" title = "Clear Score and Play Again!">Clear Score and Play Again!</button>
+    <button onclick="resetGame()" class="reset-btn" title = "Just Play Again!">Just Play Again!</button>
+
+    `;
+    document.getElementById("startpage").innerHTML = finalQuizDetails;
+}
+
+// clear function clears high score from the user's local storage and brings the user back to the start page
+function clearHighscore(){
+    localStorage.setItem("Highscore", "");
+    localStorage.setItem("MVP", "");
+
+    resetGame();
+}    
+
+//reset function puts user back to the beginning page and allows them to play the quiz again!
+function resetGame() {
+    clearInterval(quizTimer);
+    totalScore = 0;
+    nextQuestion = -1;
+    timeLeft = 0;
+    quizTimer = null;
+
+    document.getElementById("timeLeft").innerHTML=timeLeft + " seconds";
+
+    window.location.reload();
+
+    document.getElementById("startpage").innerHTML = finalQuizDetails;
+}
+
+//wrong answer reduces time by 25 seconds
+function wrongAnswer() {
+    timeLeft -= 25;
+
+    if (timeLeft < 0) {
+        timeLeft = 0;
+    }
+    feedbackEl.textContent = "WRONG! The answer was: " + questions[nextQuestion].answer;
+    feedbackEl.style.color = "red";
+    feedbackEl.style.fontWeight = "bold";
+    feedbackEl.style.fontSize = "100%";
+
+    feedbackEl.setAttribute("class", "feedback");
+    setTimeout(function() {
+    feedbackEl.setAttribute("class", "hide");
+    }, 1500);
+
+    nextNewQuestion();
+
+}
+
+
+//correct answer grants the user 40 points/ maxmimum user high score is 400!
+function correctAnswer() {
+    totalScore += 40;
+
+    feedbackEl.textContent = "CORRECT! That was the right answer: " + questions[nextQuestion].answer;
+    feedbackEl.style.color = "green";
+    feedbackEl.style.fontWeight = "bold";
+    feedbackEl.style.fontSize = "100%";
+
+    feedbackEl.setAttribute("class", "feedback");
+    setTimeout(function() {
+    feedbackEl.setAttribute("class", "hide");
+    }, 1500);
+
+    nextNewQuestion();
+
+}
+
+//officially initates the question const and ensures correct answers are chosed, linking them to the above functions
+function nextNewQuestion() {
+    nextQuestion++;
+
+    if (nextQuestion > questions.length - 1) {
+        quizOver();
+        return;
+    }
+    
